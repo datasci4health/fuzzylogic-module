@@ -1,0 +1,151 @@
+FUNCTION_BLOCK calc_sbe
+
+// Define input variables
+VAR_INPUT
+    ph : REAL;
+    pco2 : REAL;
+    sbe: REAL;
+END_VAR
+
+// Define output variable
+VAR_OUTPUT
+    acute_respiratory_acidosis : REAL;
+    acute_respiratory_alkalosis : REAL;
+    chronic_respiratory_acidosis : REAL;
+    chronic_respiratory_alkalosis : REAL;
+    metabolic_acidosis : REAL;
+    metabolic_alkalosis : REAL;
+END_VAR
+
+
+FUZZIFY ph
+    TERM low := (6,1) (6.5,0.9) (7.33,0.8) (7.4,0) ;
+    TERM normal := gauss 7.4 0.05;
+    TERM high := (7.4,0) (7.5,0.8) (8.5,0.9) (9,1);
+END_FUZZIFY
+
+FUZZIFY pco2
+    TERM low := (0,1) (32,0.5) (38.5,0);
+    TERM normal := gbell 6.5 8 38.5;
+    TERM high := (38.5,0) (45,0.5) (80,1);
+END_FUZZIFY
+
+FUZZIFY sbe
+    TERM low := (-60,1) (-2,0.5) (0.5,0);
+    TERM normal := gbell 2.5 6 0.5;
+    TERM high := (0.5,0) (3,0.5) (60,1);
+END_FUZZIFY
+
+// Defuzzify output variables
+
+DEFUZZIFY acute_respiratory_acidosis			
+    TERM unlikely := (0, 1) (25,0.75) (45,0);
+    TERM probable := (43, 0) (50, 1) (80,1) (87,0);
+    TERM very_likely := (85, 0) (100,1);
+    // Use 'Center Of Gravity' defuzzification method
+    METHOD : COG;
+    // Default value is 0 (if no rule activates defuzzifier)
+    DEFAULT := 0;
+END_DEFUZZIFY
+
+DEFUZZIFY acute_respiratory_alkalosis
+    TERM unlikely := (0, 1) (25,0.75) (45,0);
+    TERM probable := (43, 0) (50, 1) (80,1) (87,0);
+    TERM very_likely := (85, 0) (100,1);
+    // Use 'Center Of Gravity' defuzzification method
+    METHOD : COG;
+    // Default value is 0 (if no rule activates defuzzifier)
+    DEFAULT := 0;
+END_DEFUZZIFY
+
+DEFUZZIFY chronic_respiratory_acidosis			
+    TERM unlikely := (0, 1) (25,0.75) (45,0);
+    TERM probable := (43, 0) (50, 1) (80,1) (87,0);
+    TERM very_likely := (85, 0) (100,1);
+    // Use 'Center Of Gravity' defuzzification method
+    METHOD : COG;
+    // Default value is 0 (if no rule activates defuzzifier)
+    DEFAULT := 0;
+END_DEFUZZIFY
+
+DEFUZZIFY chronic_respiratory_alkalosis			
+    TERM unlikely := (0, 1) (25,0.75) (45,0);
+    TERM probable := (43, 0) (50, 1) (80,1) (87,0);
+    TERM very_likely := (85, 0) (100,1);
+    // Use 'Center Of Gravity' defuzzification method
+    METHOD : COG;
+    // Default value is 0 (if no rule activates defuzzifier)
+    DEFAULT := 0;
+END_DEFUZZIFY
+
+DEFUZZIFY metabolic_acidosis			
+    TERM unlikely := (0, 1) (25,0.75) (45,0);
+    TERM probable := (43, 0) (50, 1) (80,1) (87,0);
+    TERM very_likely := (85, 0) (100,1);
+    // Use 'Center Of Gravity' defuzzification method
+    METHOD : COG;
+    // Default value is 0 (if no rule activates defuzzifier)
+    DEFAULT := 0;	
+END_DEFUZZIFY
+
+DEFUZZIFY metabolic_alkalosis			
+    TERM unlikely := (0, 1) (25,0.75) (45,0);
+    TERM probable := (43, 0) (50, 1) (80,1) (87,0);
+    TERM very_likely := (85, 0) (100,1);
+    // Use 'Center Of Gravity' defuzzification method
+    METHOD : COG;
+    // Default value is 0 (if no rule activates defuzzifier)
+    DEFAULT := 0;
+END_DEFUZZIFY
+
+
+RULEBLOCK No1
+    // Use 'min' for 'and' (also implicit use 'max'
+    // for 'or' to fulfill DeMorgan's Law)
+    AND : MIN;
+    // Use 'min' activation method
+    ACT : MIN;
+    // Use 'max' accumulation method
+    ACCU : MAX;
+
+	RULE 1 : IF ph IS low AND pco2 IS high AND sbe is normal 
+                THEN acute_respiratory_acidosis IS very_likely;
+
+	RULE 2 : IF ph IS high AND pco2 IS low AND sbe is normal 
+                THEN acute_respiratory_alkalosis IS very_likely;
+
+	RULE 3 : IF ph IS low AND pco2 IS high AND sbe is high 
+                THEN chronic_respiratory_acidosis IS very_likely;
+
+	RULE 4 : IF ph IS high AND pco2 IS low AND sbe is low 
+                THEN chronic_respiratory_alkalosis IS very_likely;
+
+        RULE 5 : IF ph IS low AND pco2 IS low AND sbe is low 
+                THEN metabolic_acidosis IS very_likely;
+
+        RULE 6 : IF ph IS high AND pco2 IS high AND sbe is high 
+                THEN metabolic_alkalosis IS very_likely;
+                
+        RULE 7 : IF ph IS normal AND pco2 IS normal AND sbe is normal 
+                THEN acute_respiratory_acidosis IS unlikely;
+
+        RULE 8 : IF ph IS normal AND pco2 IS normal AND sbe is normal 
+                THEN acute_respiratory_alkalosis IS unlikely;
+
+        RULE 9 : IF ph IS normal AND pco2 IS normal AND sbe is normal 
+                THEN  chronic_respiratory_acidosis IS unlikely;
+
+        RULE 10 : IF ph IS normal AND pco2 IS normal AND sbe is normal 
+                THEN  chronic_respiratory_alkalosis IS unlikely;
+
+        RULE 11 : IF ph IS normal AND pco2 IS normal AND sbe is normal 
+                THEN metabolic_acidosis IS unlikely;
+
+        RULE 12 : IF ph IS normal AND pco2 IS normal AND sbe is normal 
+                THEN metabolic_alkalosis IS unlikely;
+
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+
+
