@@ -21,19 +21,19 @@ END_VAR
 FUZZIFY ph
     TERM low := (6,1) (6.5,0.9) (7.33,0.8) (7.4,0) ;
     TERM normal := gauss 7.4 0.05;
-    TERM high := (7.4,0) (7.5,0.8) (8.5,0.9) (9,1);
+    TERM high := (7.4,0) (7.5,0.8) (8,1);
 END_FUZZIFY
 
 FUZZIFY pco2
-    TERM low := (0,1) (32,0.5) (38.5,0);
+    TERM low := (0,1) (32,0.9) (38.5,0);
     TERM normal := gbell 6.5 8 38.5;
-    TERM high := (38.5,0) (45,0.5) (80,1);
+    TERM high := (38.5,0) (45,0.9) (80,1);
 END_FUZZIFY
 
 FUZZIFY sbe
-    TERM low := (-60,1) (-2,0.5) (0.5,0);
+    TERM low := (-60,1) (-2,0.9) (0.5,0);
     TERM normal := gbell 2.5 6 0.5;
-    TERM high := (0.5,0) (3,0.5) (60,1);
+    TERM high := (0.5,0) (3,0.9) (60,1);
 END_FUZZIFY
 
 // Defuzzify output variables
