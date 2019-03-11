@@ -17,23 +17,22 @@ VAR_OUTPUT
     metabolic_alkalosis : REAL;
 END_VAR
 
-
 FUZZIFY ph
     TERM low := (6,1) (6.5,0.9) (7.33,0.8) (7.4,0) ;
     TERM normal := gauss 7.4 0.05;
-    TERM high := (7.4,0) (7.5,0.8) (8,1);
+    TERM high := (7.4,0) (7.5,0.8) (8.5,0.9) (9,1);
 END_FUZZIFY
 
 FUZZIFY pco2
-    TERM low := (0,1) (32,0.9) (38.5,0);
+    TERM low := (0,1) (32,0.5) (38.5,0);
     TERM normal := gbell 6.5 8 38.5;
-    TERM high := (38.5,0) (45,0.9) (80,1);
+    TERM high := (38.5,0) (45,0.5) (95,1);
 END_FUZZIFY
 
 FUZZIFY sbe
-    TERM low := (-60,1) (-2,0.9) (0.5,0);
+    TERM low := (-60,1) (-2,0.5) (0.5,0);
     TERM normal := gbell 2.5 6 0.5;
-    TERM high := (0.5,0) (3,0.9) (60,1);
+    TERM high := (0.5,0) (3,0.5) (60,1);
 END_FUZZIFY
 
 // Defuzzify output variables
@@ -98,7 +97,6 @@ DEFUZZIFY metabolic_alkalosis
     DEFAULT := 0;
 END_DEFUZZIFY
 
-
 RULEBLOCK No1
     // Use 'min' for 'and' (also implicit use 'max'
     // for 'or' to fulfill DeMorgan's Law)
@@ -143,9 +141,165 @@ RULEBLOCK No1
 
         RULE 12 : IF ph IS normal AND pco2 IS normal AND sbe is normal 
                 THEN metabolic_alkalosis IS unlikely;
-
 END_RULEBLOCK
 
 END_FUNCTION_BLOCK
 
+FUNCTION_BLOCK calc_sbe_sec
 
+// Define input variables
+VAR_INPUT
+    compare_pco2: REAL;
+    compare_dpco2: REAL;
+    compare_dhco3: REAL;
+    compare_sbe: REAL;
+
+    compare_pco2_2: REAL;
+    compare_dpco2_2: REAL;
+    compare_dhco3_2: REAL;
+    compare_sbe_2: REAL;
+
+END_VAR
+
+// Define output variable
+VAR_OUTPUT
+    additional_respiratory_acidosis: REAL;
+    additional_respiratory_alkalosis: REAL;
+    additional_metabolic_acidosis: REAL;
+    additional_metabolic_alkalosis: REAL;
+END_VAR
+
+FUZZIFY compare_pco2
+    TERM less := (-100,1) (-7.8,1) (-2.6,0.8) (0,0);
+    TERM equal := gbell 5.2 7.8 0;
+    TERM greather := (0,0) (2.6,0.8) (7.8,1) (100,1);
+END_FUZZIFY
+
+FUZZIFY compare_dpco2
+    TERM less := (-100,1) (-7.8,1) (-2.6,0.8) (0,0);
+    TERM equal := gbell 5.2 7.8 0;
+    TERM greather := (0,0) (2.6,0.8) (7.8,1) (100,1);
+END_FUZZIFY
+
+FUZZIFY compare_dhco3
+    TERM less := (-100,1) (-9,1) (-3,0.8) (0,0);
+    TERM equal := gbell 6 9 0;
+    TERM greather := (0,0) (3,0.8) (9,1) (100,1);
+END_FUZZIFY
+
+FUZZIFY compare_sbe
+    TERM less := (-10,1) (-2.4,1) (-0.8,0.8) (0,0);
+    TERM equal := gbell 1.6 2.4 0;
+    TERM greather := (0,0) (0.8,0.8) (2.4,1) (10,1);
+END_FUZZIFY
+
+FUZZIFY compare_pco2_2
+    TERM less := (-100,1) (-7.8,1) (-2.6,0.8) (0,0);
+    TERM equal := gbell 5.2 7.8 0;
+    TERM greather := (0,0) (2.6,0.8) (7.8,1) (100,1);
+END_FUZZIFY
+
+FUZZIFY compare_dpco2_2
+    TERM less := (-100,1) (-7.8,1) (-2.6,0.8) (0,0);
+    TERM equal := gbell 5.2 7.8 0;
+    TERM greather := (0,0) (2.6,0.8) (7.8,1) (100,1);
+END_FUZZIFY
+
+FUZZIFY compare_dhco3_2
+    TERM less := (-100,1) (-9,1) (-3,0.8) (0,0);
+    TERM equal := gbell 6 9 0;
+    TERM greather := (0,0) (3,0.8) (9,1) (100,1);
+END_FUZZIFY
+
+FUZZIFY compare_sbe_2
+    TERM less := (-10,1) (-2.4,1) (-0.8,0.8) (0,0);
+    TERM equal := gbell 1.6 2.4 0;
+    TERM greather := (0,0) (0.8,0.8) (2.4,1) (10,1);
+END_FUZZIFY
+
+// Defuzzify output variables
+
+DEFUZZIFY additional_respiratory_acidosis
+    TERM unlikely := (0, 1) (25,0.75) (45,0);
+    TERM probable := (43, 0) (50, 1) (80,1) (87,0);
+    TERM very_likely := (85, 0) (100,1);
+    // Use 'Center Of Gravity' defuzzification method
+    METHOD : COG;
+    // Default value is 0 (if no rule activates defuzzifier)
+    DEFAULT := 0;
+END_DEFUZZIFY
+
+DEFUZZIFY additional_respiratory_alkalosis			
+    TERM unlikely := (0, 1) (25,0.75) (45,0);
+    TERM probable := (43, 0) (50, 1) (80,1) (87,0);
+    TERM very_likely := (85, 0) (100,1);
+    // Use 'Center Of Gravity' defuzzification method
+    METHOD : COG;
+    // Default value is 0 (if no rule activates defuzzifier)
+    DEFAULT := 0;
+END_DEFUZZIFY
+
+DEFUZZIFY additional_metabolic_acidosis			
+    TERM unlikely := (0, 1) (25,0.75) (45,0);
+    TERM probable := (43, 0) (50, 1) (80,1) (87,0);
+    TERM very_likely := (85, 0) (100,1);
+    // Use 'Center Of Gravity' defuzzification method
+    METHOD : COG;
+    // Default value is 0 (if no rule activates defuzzifier)
+    DEFAULT := 0;
+END_DEFUZZIFY
+
+DEFUZZIFY additional_metabolic_alkalosis
+    TERM unlikely := (0, 1) (25,0.75) (45,0);
+    TERM probable := (43, 0) (50, 1) (80,1) (87,0);
+    TERM very_likely := (85, 0) (100,1);
+    // Use 'Center Of Gravity' defuzzification method
+    METHOD : COG;
+    // Default value is 0 (if no rule activates defuzzifier)
+    DEFAULT := 0;
+END_DEFUZZIFY
+
+RULEBLOCK No1
+    // Use 'min' for 'and' (also implicit use 'max'
+    // for 'or' to fulfill DeMorgan's Law)
+    AND : MIN;
+    // Use 'min' activation method
+    ACT : MIN;
+    // Use 'max' accumulation method
+    ACCU : MAX;
+        
+
+        RULE 1 : IF (compare_sbe IS greather OR compare_sbe IS equal) AND (compare_sbe_2 IS less OR compare_sbe_2 IS equal)
+                THEN additional_metabolic_acidosis IS unlikely;
+
+        RULE 2 : IF (compare_sbe IS greather OR compare_sbe IS equal) AND (compare_sbe_2 IS less OR compare_sbe_2 IS equal)
+                THEN additional_metabolic_alkalosis IS unlikely;
+
+        RULE 3 : IF (compare_dhco3 IS greather OR compare_dhco3 IS equal) AND (compare_dhco3_2 IS less OR compare_dhco3_2 IS equal)
+                THEN additional_metabolic_acidosis IS unlikely;
+
+        RULE 4 : IF (compare_dhco3 IS greather OR compare_dhco3 IS equal) AND (compare_dhco3_2 IS less OR compare_dhco3_2 IS equal)
+                THEN additional_metabolic_alkalosis IS unlikely;
+                
+        RULE 5 : IF compare_sbe IS less AND compare_dhco3 IS less 
+                THEN additional_metabolic_acidosis IS very_likely;
+        
+        RULE 6 : IF compare_sbe IS greather AND compare_dhco3_2 IS greather 
+                THEN additional_metabolic_alkalosis IS very_likely;
+
+        
+        RULE 7 : IF (compare_pco2 IS greather OR compare_pco2 IS equal) AND (compare_pco2_2 IS less OR compare_pco2_2 IS equal)
+                THEN additional_respiratory_alkalosis IS unlikely;
+
+        RULE 8 : IF (compare_pco2 IS greather OR compare_pco2 IS equal) AND (compare_pco2_2 IS less OR compare_pco2_2 IS equal)
+                THEN additional_respiratory_acidosis IS unlikely;
+
+        RULE 9 : IF compare_pco2 IS less 
+                THEN additional_respiratory_alkalosis IS very_likely;
+        
+        RULE 10 : IF compare_pco2_2 IS greather 
+                THEN additional_respiratory_acidosis IS very_likely;
+
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
